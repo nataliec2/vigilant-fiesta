@@ -1,0 +1,297 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+## Bifurcation diagrams
+# u_m
+```{r}
+Hcol <- 'hotpink'
+Rcol <- 'peru'
+Mcol <- 'seagreen3'
+Ncol <- 'dodgerblue'
+D <- 0.4 # Dilution Rate (Outflow)
+R_0 <- 30 # Inflow Concentration (Nitrogen)
+l <- 0.5 # fungal mortality
+s <- 0.2 # senescence coefficient
+c <- 0.5 # host's C:N Ratio
+u_m <- 0.5 #Fungus M uptake rate
+u_n <- 0.4 #Fungus N uptake rate
+#f <- 0.5 # fidelity of plant allocation to Fungi M
+f <- 0.5 + u_m - u_n
+x <- u_m/5 #cost of mutualism of Fungi M
+y <- u_n/5 #cost of mutualsim of Fungi N
+b <- 0.6 #symbiont's intrinsic growth rate
+C_a <- 0.7 #Allocation Carbon
+C_c <- 0.3 #Construction Carbon 
+v <- 0.5  #Conversion efficiency, Host carbon to more symbionts
+
+```
+
+```{r}
+# Bifurcation of Mutualist M uptake rate.
+u_mset <- seq(from= 0, to = 1, length.out = 50)
+Hstar <- NaN*u_mset
+Mstar <- NaN*u_mset
+Nstar <- NaN*u_mset
+Rstar <- NaN*u_mset
+
+for(k in 1: length(u_mset)){
+  u_m <- u_mset[k]
+  tset1 <- seq(from = 0, to = 100, length.out = 10000)
+    R.simu3 <- NaN*tset1
+    R.simu3[1] <- 10  
+    H.simu3 <- NaN*tset1
+    H.simu3[1] <- 1   
+    M.simu3 <- NaN*tset1
+    M.simu3[1] <- 1
+    N.simu3 <- NaN*tset1
+    N.simu3[1] <- 1 
+    
+    
+    for(i in 2: length(tset1)){
+      dt <- tset1[i] - tset1[i-1]
+    R <- R.simu3[i-1]
+    H <- H.simu3[i-1]
+    M <- M.simu3[i-1]
+    N <- N.simu3[i-1]
+    dR <- (D*(R_0 - R) - u_m*M*R - u_n*N*R + (s*H)/c)*dt
+    dH <- ( c*u_m*R*M + c*u_n*N*R - (s*H) - ((f*C_a) + C_c)*M*H - (C_c + (1-f)*C_a)*N*H )*dt
+    dM <- (b*(1-x)*v*(((f*C_a)+C_c)*H*M) - l*M)*dt
+    dN <- (b*v*(1-y)*((C_c + ((1-f)*C_a))*H*N) - l*N)*dt
+    R.simu3[i] <- R.simu3[i-1] +dR
+    H.simu3[i] <- H.simu3[i-1] +dH
+    N.simu3[i] <- N.simu3[i-1] +dN
+    M.simu3[i] <- M.simu3[i-1] +dM
+    }
+   Rstar[k] <- R.simu3[length(tset1)] 
+   Hstar[k] <- H.simu3[length(tset1)] 
+   Nstar[k] <- N.simu3[length(tset1)]
+   Mstar[k] <- M.simu3[length(tset1)]
+}
+plot(u_mset,Rstar,type='l',lwd=2,col=Rcol,las=1,xlab='Fungal Uptake Rate, u_m ',ylab='Stable equilibria of Resource, R*')
+plot(u_mset,Hstar,type='l',lwd=2,col=Hcol,las=1,xlab='Fungal Uptake Rate, u_m ',ylab='Stable equilibria of Host, H*')
+plot(u_mset,Mstar,type='l',lwd=2,col=Mcol,las=1,xlab='Fungal Uptake Rate, u_m ',ylab='Stable equilibria of Mutualist, M*')
+plot(u_mset,Nstar,type='l',lwd=2,col=Ncol,las=1,xlab='Fungal Uptake Rate, u_m ',ylab='Stable equilibria of Non-Mutualist, N*')
+```
+
+** Non-mut is increasing with lower magnitude because host is growing with greater u_m, but there's apparent competition acting on N by M **
+
+## Bifurcation diagrams
+# f
+```{r}
+Hcol <- 'hotpink'
+Rcol <- 'peru'
+Mcol <- 'seagreen3'
+Ncol <- 'dodgerblue'
+D <- 0.4 # Dilution Rate (Outflow)
+R_0 <- 30 # Inflow Concentration (Nitrogen)
+l <- 0.5 # fungal mortality
+s <- 0.2 # senescence coefficient
+c <- 0.5 # host's C:N Ratio
+u_m <- 0.5 #Fungus M uptake rate
+u_n <- 0.4 #Fungus N uptake rate
+#f <- 0.5 # fidelity of plant allocation to Fungi M
+f <- 0.5 + u_m - u_n
+x <- u_m/5 #cost of mutualism of Fungi M
+y <- u_n/5 #cost of mutualsim of Fungi N
+b <- 0.6 #symbiont's intrinsic growth rate
+C_a <- 0.7 #Allocation Carbon
+C_c <- 0.3 #Construction Carbon 
+v <- 0.5  #Conversion efficiency, Host carbon to more symbionts
+
+```
+
+```{r}
+# Bifurcation of fidelity of Host to Fungus M.
+fset <- seq(from= 0, to = 1, length.out = 15)
+Hstar <- NaN*fset
+Mstar <- NaN*fset
+Nstar <- NaN*fset
+Rstar <- NaN*fset
+
+for(k in 1: length(fset)){
+  f <- fset[k]
+  tset1 <- seq(from = 0, to = 100, length.out = 10000)
+    R.simu4 <- NaN*tset1
+    R.simu4[1] <- 10  
+    H.simu4 <- NaN*tset1
+    H.simu4[1] <- 1   
+    M.simu4 <- NaN*tset1
+    M.simu4[1] <- 1
+    N.simu4 <- NaN*tset1
+    N.simu4[1] <- 1 
+    
+    
+    for(i in 2: length(tset1)){
+      dt <- tset1[i] - tset1[i-1]
+    R <- R.simu4[i-1]
+    H <- H.simu4[i-1]
+    M <- M.simu4[i-1]
+    N <- N.simu4[i-1]
+    dR <- (D*(R_0 - R) - u_m*M*R - u_n*N*R + (s*H)/c)*dt
+    dH <- ( c*u_m*R*M + c*u_n*N*R - (s*H) - ((f*C_a) + C_c)*M*H - (C_c + (1-f)*C_a)*N*H )*dt
+    dM <- (b*(1-x)*v*(((f*C_a)+C_c)*H*M) - l*M)*dt
+    dN <- (b*v*(1-y)*((C_c + ((1-f)*C_a))*H*N) - l*N)*dt
+    R.simu4[i] <- R.simu4[i-1] +dR
+    H.simu4[i] <- H.simu4[i-1] +dH
+    N.simu4[i] <- N.simu4[i-1] +dN
+    M.simu4[i] <- M.simu4[i-1] +dM
+    }
+   Rstar[k] <- R.simu4[length(tset1)] 
+   Hstar[k] <- H.simu4[length(tset1)] 
+   Nstar[k] <- N.simu4[length(tset1)]
+   Mstar[k] <- M.simu4[length(tset1)]
+}
+plot(fset,Rstar,type='l',lwd=2,col=Rcol,las=1,xlab='Fidelity of Host to Fungus M, f ',ylab='Stable equilibria of Resource, R*')
+plot(fset,Hstar,type='l',lwd=2,col=Hcol,las=1,xlab='Fidelity of Host to Fungus M, f ',ylab='Stable equilibria of Host, H*')
+plot(fset,Mstar,type='l',lwd=2,col=Mcol,las=1,xlab='Fidelity of Host to Fungus M, f ',ylab='Stable equilibria of Mutualist, M*')
+plot(fset,Nstar,type='l',lwd=2,col=Ncol,las=1,xlab='Fidelity of Host to Fungus M, f ',ylab='Stable equilibria of Non-Mutualist, N*')
+```
+
+
+## Bifurcation diagrams
+# v
+```{r}
+Hcol <- 'hotpink'
+Rcol <- 'peru'
+Mcol <- 'seagreen3'
+Ncol <- 'dodgerblue'
+D <- 0.4 # Dilution Rate (Outflow)
+R_0 <- 30 # Inflow Concentration (Nitrogen)
+l <- 0.5 # fungal mortality
+s <- 0.2 # senescence coefficient
+c <- 0.5 # host's C:N Ratio
+u_m <- 0.5 #Fungus M uptake rate
+u_n <- 0.4 #Fungus N uptake rate
+#f <- 0.5 # fidelity of plant allocation to Fungi M
+f <- 0.5 + u_m - u_n
+x <- u_m/5 #cost of mutualism of Fungi M
+y <- u_n/5 #cost of mutualsim of Fungi N
+b <- 0.6 #symbiont's intrinsic growth rate
+C_a <- 0.7 #Allocation Carbon
+C_c <- 0.3 #Construction Carbon 
+v <- 0.5  #Conversion efficiency, Host carbon to more symbionts
+
+```
+
+```{r}
+#Bifurcation of Fungal conversion efficiency
+vset <- seq(from= 0, to = 1, length.out = 50)
+Hstar <- NaN*vset
+Mstar <- NaN*vset
+Nstar <- NaN*vset
+Rstar <- NaN*vset
+
+for(k in 1: length(vset)){
+  v <- vset[k]
+  tset1 <- seq(from = 0, to = 100, length.out = 10000)
+    R.simu7 <- NaN*tset1
+    R.simu7[1] <- 10 
+    H.simu7 <- NaN*tset1
+    H.simu7[1] <- 1   
+    M.simu7 <- NaN*tset1
+    M.simu7[1] <- 1
+    N.simu7 <- NaN*tset1
+    N.simu7[1] <- 1 
+    
+    
+    for(i in 2: length(tset1)){
+      dt <- tset1[i] - tset1[i-1]
+    R <- R.simu7[i-1]
+    H <- H.simu7[i-1]
+    M <- M.simu7[i-1]
+    N <- N.simu7[i-1]
+    dR <- (D*(R_0 - R) - u_m*M*R - u_n*N*R + (s*H)/c)*dt
+    dH <- ( c*u_m*R*M + c*u_n*N*R - (s*H) - ((f*C_a) + C_c)*M*H - (C_c + (1-f)*C_a)*N*H )*dt
+    dM <- (b*(1-x)*v*(((f*C_a)+C_c)*H*M) - l*M)*dt
+    dN <- (b*v*(1-y)*((C_c + ((1-f)*C_a))*H*N) - l*N)*dt
+    R.simu7[i] <- R.simu7[i-1] +dR
+    H.simu7[i] <- H.simu7[i-1] +dH
+    N.simu7[i] <- N.simu7[i-1] +dN
+    M.simu7[i] <- M.simu7[i-1] +dM
+    }
+   Rstar[k] <- R.simu7[length(tset1)] 
+   Hstar[k] <- H.simu7[length(tset1)] 
+   Nstar[k] <- N.simu7[length(tset1)]
+   Mstar[k] <- M.simu7[length(tset1)]
+}
+
+plot(vset,Rstar,type='l',lwd=2,col=Rcol,las=1,xlab='Fungal Conversion efficiency, v ',ylab='Stable equilibria of Resource, R*')
+plot(vset,Hstar,type='l',lwd=2,col=Hcol,las=1,xlab='Fungal Conversion efficiency, v ',ylab='Stable equilibria of Host, H*')
+plot(vset,Mstar,type='l',lwd=2,col=Mcol,las=1,xlab='Fungal Conversion efficiency, v ',ylab='Stable equilibria of Mutualist, M*')
+plot(vset,Nstar,type='l',lwd=2,col=Ncol,las=1,xlab='Fungal Conversion efficiency, v ',ylab='Stable equilibria of Non-Mutualist, N*')
+```
+
+
+## Bifurcation diagrams
+# u_n
+```{r}
+Hcol <- 'hotpink'
+Rcol <- 'peru'
+Mcol <- 'seagreen3'
+Ncol <- 'dodgerblue'
+D <- 0.4 # Dilution Rate (Outflow)
+R_0 <- 30 # Inflow Concentration (Nitrogen)
+l <- 0.5 # fungal mortality
+s <- 0.2 # senescence coefficient
+c <- 0.5 # host's C:N Ratio
+u_m <- 0.5 #Fungus M uptake rate
+u_n <- 0.4 #Fungus N uptake rate
+#f <- 0.5 # fidelity of plant allocation to Fungi M
+f <- 0.5 + u_m - u_n
+x <- u_m/5 #cost of mutualism of Fungi M
+y <- u_n/5 #cost of mutualsim of Fungi N
+b <- 0.6 #symbiont's intrinsic growth rate
+C_a <- 0.7 #Allocation Carbon
+C_c <- 0.3 #Construction Carbon 
+v <- 0.5  #Conversion efficiency, Host carbon to more symbionts
+
+```
+
+```{r}
+#Bifurcation of Mutualist N uptake rate
+u_nset <- seq(from= 0, to = 1, length.out = 50)
+Hstar <- NaN*u_nset
+Mstar <- NaN*u_nset
+Nstar <- NaN*u_nset
+Rstar <- NaN*u_nset
+
+for(k in 1: length(u_nset)){
+  u_n <- u_nset[k]
+  tset1 <- seq(from = 0, to = 100, length.out = 10000)
+    R.simu5 <- NaN*tset1
+    R.simu5[1] <- 10
+    H.simu5 <- NaN*tset1
+    H.simu5[1] <- 1   
+    M.simu5 <- NaN*tset1
+    M.simu5[1] <- 1
+    N.simu5 <- NaN*tset1
+    N.simu5[1] <- 1 
+    
+    
+    for(i in 2: length(tset1)){
+      dt <- tset1[i] - tset1[i-1]
+    R <- R.simu5[i-1]
+    H <- H.simu5[i-1]
+    M <- M.simu5[i-1]
+    N <- N.simu5[i-1]
+    dR <- (D*(R_0 - R) - u_m*M*R - u_n*N*R + (s*H)/c)*dt
+    dH <- ( c*u_m*R*M + c*u_n*N*R - (s*H) - ((f*C_a) + C_c)*M*H - (C_c + (1-f)*C_a)*N*H )*dt
+    dM <- (b*(1-x)*v*(((f*C_a)+C_c)*H*M) - l*M)*dt
+    dN <- (b*v*(1-y)*((C_c + ((1-f)*C_a))*H*N) - l*N)*dt
+    R.simu5[i] <- R.simu5[i-1] +dR
+    H.simu5[i] <- H.simu5[i-1] +dH
+    N.simu5[i] <- N.simu5[i-1] +dN
+    M.simu5[i] <- M.simu5[i-1] +dM
+    }
+   Rstar[k] <- R.simu5[length(tset1)] 
+   Hstar[k] <- H.simu5[length(tset1)] 
+   Nstar[k] <- N.simu5[length(tset1)]
+   Mstar[k] <- M.simu5[length(tset1)]
+}
+plot(u_nset,Rstar,type='l',lwd=2,col=Rcol,las=1,xlab='Fungal Uptake Rate, u_n ',ylab='Stable equilibria of Resource, R*')
+plot(u_nset,Hstar,type='l',lwd=2,col=Hcol,las=1,xlab='Fungal Uptake Rate, u_n ',ylab='Stable equilibria of Host, H*')
+plot(u_nset,Mstar,type='l',lwd=2,col=Mcol,las=1,xlab='Fungal Uptake Rate, u_n ',ylab='Stable equilibria of Mutualist, M*')
+plot(u_nset,Nstar,type='l',lwd=2,col=Ncol,las=1,xlab='Fungal Uptake Rate, u_n ',ylab='Stable equilibria of Non-Mutualist, N*')
+```
